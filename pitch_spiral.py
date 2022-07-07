@@ -22,9 +22,10 @@ class IntervalSpiral(QWidget):
         self.freq_ratio = 1.5
 
         self.ratio_input = QSlider(Qt.Vertical, self)
-        self.ratio_input.setValue(1)
-        self.ratio_input.setMinimum(1)
-        self.ratio_input.setMaximum(4)
+        self.ratio_input.setValue(100)
+        self.ratio_input.setMinimum(100)
+        self.ratio_input.setMaximum(400)
+        self.ratio_input.valueChanged.connect(self.update)
 
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.canvas)
@@ -59,7 +60,22 @@ class IntervalSpiral(QWidget):
         for otone in range(1,n_otone+1):
             theta = np.log(otone)*360/np.log(2)
             r = 1+ theta/360
-            self.axes.add_artist(Wedge((0,0),r,theta-th_width,theta+th_width,width = 1))
+            self.axes.add_artist(Wedge((0,0),r,theta-th_width,theta+th_width,width = 1,alpha = 0.5))
+
+    def plot_note(self):
+        th_width = self.th_width
+        n_otone = self.max_otone
+        for otone in range(1,n_otone+1):
+            theta = np.log(otone*self.freq_ratio)*360/np.log(2)
+            r = 1+ theta/360
+            self.axes.add_artist(Wedge((0,0),r,theta-th_width,theta+th_width,width = 1,color='orange',alpha = 0.5))
+
+    def update(self):
+        self.freq_ratio = self.ratio_input.value()/100
+        self.axes.clear()
+        self.plot_spiral_and_root()
+        self.plot_note()
+        self.canvas.draw()
 
 
 if __name__ == "__main__":
