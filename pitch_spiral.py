@@ -1,16 +1,13 @@
 import sys
 import matplotlib.pyplot as plt
+import sounddevice as sd
 from matplotlib.patches import Wedge
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvas
-from PyQt5.QtCore import Qt, Slot, Signal
-from PyQt5.QtWidgets import (
-    QApplication,
-    QWidget,
-    QHBoxLayout,
-    QSlider
-)
+from PyQt5 import Qt
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QSlider
+import scipy.signal as sig
 
 class IntervalSpiral(QWidget):
     def __init__(self):
@@ -19,17 +16,24 @@ class IntervalSpiral(QWidget):
         self.canvas = FigureCanvas(Figure(figsize=(5, 3)))
         self.axes = self.canvas.figure.subplots()
 
-        self.freq_ratio = 1.5
+        self.freq_ratio = 1
 
-        self.ratio_input = QSlider(Qt.Vertical, self)
-        self.ratio_input.setValue(100)
-        self.ratio_input.setMinimum(100)
-        self.ratio_input.setMaximum(400)
+        self.ratio_input = QSlider(self)
+        self.ratio_input.setValue(1000)
+        self.ratio_input.setMinimum(1000)
+        self.ratio_input.setMaximum(2000)
         self.ratio_input.valueChanged.connect(self.update)
+
+        self.slider_label = QLabel(self)
+        self.slider_label.setText(f"frequency ratio = {self.freq_ratio}")
+
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(self.ratio_input)
+        vlayout.addWidget(self.slider_label)
 
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.canvas)
-        hlayout.addWidget(self.ratio_input)
+        hlayout.addLayout(vlayout)
 
         self.setLayout(hlayout)
 
@@ -71,16 +75,28 @@ class IntervalSpiral(QWidget):
             self.axes.add_artist(Wedge((0,0),r,theta-th_width,theta+th_width,width = 1,color='orange',alpha = 0.5))
 
     def update(self):
-        self.freq_ratio = self.ratio_input.value()/100
+        self.freq_ratio = float(self.ratio_input.value())/1000
+        self.slider_label.setText(f"frequency ratio = {self.freq_ratio}")
         self.axes.clear()
         self.plot_spiral_and_root()
         self.plot_note()
         self.canvas.draw()
+
+start_idx = 0
+
+def callback(outdata, frames, time, status):
+    global start_idx
+    global w
+    t = (start_idx + np.arange(frames)) / 44100
+    t = t.reshape(-1, 1)
+    outdata[:] = 0.1 * sig.sawtooth(2 * np.pi * 200 * t+0.1,width=0.5) + 0.1 * sig.sawtooth(2 * np.pi * 200 *w.freq_ratio* t,width=0.5)
+    start_idx += frames
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = IntervalSpiral()
     w.show()
-    app.exec()
+    with sd.OutputStream(device=3, channels=1, callback=callback, samplerate=44100):
+        app.exec()
 
