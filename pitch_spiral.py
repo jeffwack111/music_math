@@ -52,7 +52,7 @@ class IntervalSpiral(QWidget):
         x = np.zeros(n_spiral)
         y = np.zeros(n_spiral)
 
-        for p,point in enumerate(np.linspace(1,n_otone,n_spiral)):
+        for p,point in enumerate(np.linspace(1,n_otone*2,n_spiral)):
             theta = np.log(point)*2*np.pi/np.log(2)
             r = 1+theta/(2*np.pi)
 
@@ -64,7 +64,7 @@ class IntervalSpiral(QWidget):
         for otone in range(1,n_otone+1):
             theta = np.log(otone)*360/np.log(2)
             r = 1+ theta/360
-            self.axes.add_artist(Wedge((0,0),r,theta-th_width,theta+th_width,width = 1,alpha = 0.5))
+            self.axes.add_artist(Wedge((0,0),r,theta-th_width,theta+th_width,width = 1,alpha = 1/otone))
 
     def plot_note(self):
         th_width = self.th_width
@@ -72,7 +72,7 @@ class IntervalSpiral(QWidget):
         for otone in range(1,n_otone+1):
             theta = np.log(otone*self.freq_ratio)*360/np.log(2)
             r = 1+ theta/360
-            self.axes.add_artist(Wedge((0,0),r,theta-th_width,theta+th_width,width = 1,color='orange',alpha = 0.5))
+            self.axes.add_artist(Wedge((0,0),r,theta-th_width,theta+th_width,width = 1,color='orange',alpha = 1/otone))
 
     def update(self):
         self.freq_ratio = float(self.ratio_input.value())/1000
