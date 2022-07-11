@@ -82,20 +82,19 @@ class IntervalSpiral(QWidget):
         self.plot_note()
         self.canvas.draw()
 
-start_idx = 0
 cycleA = 0
 cycleB = 0
 root_freq = 200
 
 def callback(outdata, frames, time, status):
-    global start_idx
     global w
     global cycleA
     global cycleB
     t = (np.arange(frames)) / 44100
     t = t.reshape(-1, 1)
     #print(t)
-    outdata[:] = 0.1 * sig.sawtooth(2*np.pi*(root_freq*t+cycleA),width=0.5)+ 0.1 * sig.sawtooth(2*np.pi*(root_freq*w.freq_ratio*t+cycleB),width=0.5)
+    outdata[:] += 0.1 * sig.sawtooth(2*np.pi*(root_freq*t+cycleA),width=0.5)
+    outdata[:] +=  0.1 * sig.sawtooth(2*np.pi*(root_freq*w.freq_ratio*t+cycleB),width=0.5)
     cycleA = (root_freq*frames/44100+cycleA)%1
     cycleB = (root_freq*w.freq_ratio*frames/44100+cycleB)%1
 
